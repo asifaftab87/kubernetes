@@ -1,0 +1,75 @@
+containerd installation
+https://github.com/containerd/containerd/blob/main/docs/getting-started.md
+
+To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+Alternatively, if you are the root user, you can run:
+
+  export KUBECONFIG=/etc/kubernetes/admin.conf
+
+check issue when nodes is down
+journalctl -u kubelet
+
+etcd not started properly
+crictl logs -f  $(crictl ps | grep etcd | awk '{print $1}')
+
+sudo -i
+crictl config --set runtime-endpoint=unix:///run/containerd/containerd.sock --set image-endpoint=unix:///run/containerd/containerd.sock
+cat /etc/crictl.yaml
+chmod 777 /etc/crictl.yaml
+crictl ps
+
+https://github.com/containerd/containerd/blob/main/docs/cri/config.md
+
+kubectl -n kube-system get cm kubeadm-config -o yaml
+
+kubectl describe node asif-latitude-e7440
+
+message:Network plugin returns error: cni plugin not initialized
+to resolve above issue
+Add pod network add-on - Weave Net
+kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
+
+to check logs
+    kubectl get nodes -v=10
+print default kubeadm config
+    kubeadm config print init-defaults
+
+kubeadm when start it reads config file
+    /etc/kubernetes/admin.conf
+
+containerd default config
+    containerd config default
+
+
+I have added below line but got error of dns
+  [plugins.'io.containerd.grpc.v1.cri']  -  this already there
+    [plugins.'io.containerd.grpc.v1.cri'.containerd.runtimes.runc.options]
+      SystemdCgroup = true
+I removed above 2 lines
+
+if we face any problem of dns then have to reinstall weave net again
+    kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
+
+if we run command:
+    kubeadm init
+    then have to do few things then it will start working again
+    first have to change configuration of admin.conf file
+    sudo chmod 777 /etc/kubernetes/admin.conf
+    Then have to create weave net pod again
+        kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
+    else pod will not be created and will always in creating stage. If you describe pod then will see the
+    error that dns unable to create networking etc and connection refused.
+    the node always having Taints NoSchedule, either remove Taints or add toleration to pod
+    
+
+
+
+
+
+
+
