@@ -1,6 +1,0 @@
-TAINT
-add taint to a node
-    kubectl taint nodes <node-name> key1=value1:NoSchedule
-delete taint from a node
-    kubectl taint nodes <node-name> key1=value1:NoSchedule
-

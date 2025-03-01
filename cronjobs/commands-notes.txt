@@ -1,0 +1,21 @@
+    --------------   TAINT   --------------
+add taint to a node
+    kubectl taint nodes <node-name> key1=value1:NoSchedule
+delete taint from a node
+    kubectl taint nodes <node-name> key1=value1:NoSchedule-
+
+    --------------   SERVICE ACCOUNT   --------------
+User account creation not allowed in kubernetes, but we can create service account
+Create service account
+    k create serviceaccount <sa-name>
+    k create sa <sa-name>
+Get all service account
+    k get serviceaccount
+    k get sa
+
+Note:
+    All users access is managed by API Server
+
+Path of files: etcd.yaml, kube-apiserver.yaml, kube-controller-manager.yaml, kube-scheduler.yaml
+/etc/kubernetes/manifests/
+
