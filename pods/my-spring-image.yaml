@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myspring
+spec:
+  containers:
+  - name: myspring-ctr
+    image: asifaftab87/spring:v1
+    ports:
+    - containerPort: 8080

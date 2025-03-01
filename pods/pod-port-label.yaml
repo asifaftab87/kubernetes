@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-port-label
+  labels:
+    app: webserver
+spec:
+  containers:
+  - image: nginx:latest
+    name: pod-port-label-ctr
+    ports:
+    - containerPort: 80
