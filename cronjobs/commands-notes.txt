@@ -1,3 +1,8 @@
+Note:
+    All users access is managed by API Server
+    Certificates of kubectl is stored inside $HOME/.kube directory and name of the file is config
+
+
     --------------   TAINT   --------------
 add taint to a node
     kubectl taint nodes <node-name> key1=value1:NoSchedule
@@ -13,9 +18,35 @@ Get all service account
     k get serviceaccount
     k get sa
 
-Note:
-    All users access is managed by API Server
+    --------------   kube config file   --------------
+Command to view kube config file
+    kubectl config view
+    By default kubectl command will use config file stored inside $HOME/.kube folder namely config
+    But we can modify config file or provide our custom config file using below command
+        k config view --kubeconfig=my-custom-config
+    We can make or custom config file" my-custom-config by keeping it inside $HOME/.kube folder
+    To change default context we have to run below command
+        k config use-context prod-user@production
+        here prod-user is Users, production is cluster and prod-user@production is contexts.
+    The changes made by config command reflects the change in config file, means code will change
+    Here we can see list of commands that available to apply for kube config
+        k config -h
+    Command to provide custom file in config command
+        kubectl config use-context --kubeconfig <path-of-custom-kube-config-file?
 
+        
 Path of files: etcd.yaml, kube-apiserver.yaml, kube-controller-manager.yaml, kube-scheduler.yaml
-/etc/kubernetes/manifests/
+    /etc/kubernetes/manifests/
+
+Run a kubectl proxy command
+    kubectl proxy
+    then we can do
+    curl http://127.0.01:8081
+    don't use localhost instead of 127.0.01, it won't work.
+
+Command to check whether user has a process to do some operation
+    k auth can-i create deployment
+    k auth can-i delete nodes
+    k auth can-i <operation> <resource>
+
 
