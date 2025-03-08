@@ -48,5 +48,12 @@ Command to check whether user has a process to do some operation
     k auth can-i create deployment
     k auth can-i delete nodes
     k auth can-i <operation> <resource>
+    k auth can-i create deployment -n nsn
+    k auth can-i <operation> <resource> --namespace <namespace-name>
+
+Admin can impersonate other user
+    k auth can-i <operation> <resource> --as <user>
+    k auth can-i create deployment --as dev-user
+    k auth can-i create pods --as dev-user
 
 
