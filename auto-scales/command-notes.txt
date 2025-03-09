@@ -1,0 +1,37 @@
+Command to watch autoscale
+    watch -n 1 kubectl get -n deployment deployment-ns
+    here we cannot use shortcut of kubectl as k
+    watch -n 1 kubectl get -n <ns-name> deployment-ns
+
+    k get hpa
+    k get hpa -n <ns-name>
+    k describe hpa <hpa-name>
+    k describe hpa <hpa-name> -n <ns-name>
+
+Edit on fly, means we will edit file directly which is deployed into server or editing server file
+server file has so many extra fields that we generally don't configure
+    k edit hpa <hpa-name> -n <ns-na>
+    k edit hpa app-tier -n deployment-ns
+    here deployment is namespace
+
+kubernetes depends on metrics collected
+to use hpa, we first have to deployed metrics server to metrics available because autoscaling
+using metrics of kubernetes
+We also have to add cpu utilization in our pod then hpa will compute cpu autoscaling calculation
+
+check rollout changes
+    k rollout status deployment app-tier -n deployment-ns
+    k rollout status deployment <deployment-name> -n <ns-n>
+
+we can rollout pause by using pause command, it stop to generate new pod and complete it tasks
+    k rollout pause deploy app-tier -n deployment-ns
+    k rollout pause deployment <deployment-name>
+    k rollout pause deployment <deployment-name> -n <ns-n>
+undo changes
+    k rollout undo pause deploy app-tier -n deployment-ns
+    k rollout undo pause deployment <deployment-name>
+    k rollout undo pause deployment <deployment-name> -n <ns-n>
+See rollout history
+    k rollout history deploy app-tier -n deployment-ns
+    k rollout history deployment <deployment-name>
+    k rollout history deployment <deployment-name> -n <ns-n>

@@ -1,2 +1,28 @@
 Scale deployment
     k scale deployment <deployment-name> --replicas=<num>
+
+Command to see memory and cpu used by pods
+    k get top pods -n <ns-name>
+
+Scale using horizontal scaling
+    kubectl autoscale deployment app-tier --max=5 --min=1 --cpu-percent=70
+    k autoscale deployment <deploy-name> --max=<max-num-replicas> --min=<min-num-replicas> --cpu-percent=<percent-cpu>
+
+    for
+        kubectl autoscale deployment app-tier --max=5 --min=1 --cpu-percent=70
+    kubernetes will decrease replicas if average usage of cpu is 63% or lower and will increase replicas
+    if cpu usage is 77% or higher.
+
+Command to watch autoscale
+    watch -n 1 kubectl get -n deployment deployment
+    here we cannot use shortcut of kubectl as k
+    watch -n 1 kubectl get -n <ns-name> deployment
+
+liveness probe
+    if it fails it will restart pods
+readiness probe
+    will check that pod is ready to accept request or not
+
+Init containers execute serially.
+Init containers once complete its execution then normal containers will start
+In init containers we can not use readiness prob, because it should be complete.

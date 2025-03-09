@@ -1,0 +1,13 @@
+COMMAND
+
+Command to see memory and cpu used by pods
+    k get top pods -n <ns-name>
+    k get top pods
+
+
+
+NOTES
+Kubernetes will only scale the pods if .02 cpu is remaining
+1000m = 1 cpu
+m is milli here
+20m means 20 milli cpu
