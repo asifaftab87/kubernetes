@@ -1,0 +1,2 @@
+Scale deployment
+    k scale deployment <deployment-name> --replicas=<num>
