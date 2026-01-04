@@ -139,10 +139,13 @@ kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.30.2
 wget https://raw.githubusercontent.com/projectcalico/calico/v3.30.2/manifests/custom-resources.yaml
 vi custom-resources.yaml
 here we have to search cidr and change it to our kubeadm init --pod-network-cidr value, in my case it is: 10.10.0.0/16
+Generally cidr network should be different form our local system network value.
+From this our pod will get ips.
 kubectl apply -f custom-resources.yaml
 
 # check state
 kubectl get pods --all-namespaces
 kubectl get nodes
+
 
 
