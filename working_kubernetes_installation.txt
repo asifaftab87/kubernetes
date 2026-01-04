@@ -1,0 +1,148 @@
+
+VM Networ
+host only ethernet: 
+	IPv4 Prfix: 172.16.100.1/24
+	IPv4 Address:  172.16.100.1
+
+master
+
+Linux vm
+	IPv4 Method: 
+		Subnet: 172.16.100.0/24
+		Address: 172.16.100.31
+	Profile configuration:
+		Your name: master
+		Your server name: master
+		Pick a username: master
+
+update ubuntu: sudo apt update && sudo apt upgrade -y
+
+add kubectl alias in  .bashrc file: sudo vim  ~/.bashrc
+alias k=kubectl
+source ~/.bashrc
+
+update again : sudo apt update && sudo apt upgrade -y
+
+edit fstab file to turn off swap: sudo vim /etc/fstab
+comment line, which is generally last line 
+#/swap.img      none    swap    sw      0       0
+
+then use command: sudo swapoff -a
+command to verify swap is turn off: free -m 
+expected output:
+               total        used        free      shared  buff/cache   available
+Mem:            3911         232        2414           1        1264        3436
+Swap:              0           0           0
+
+edit host file: sudo vi /etc/hosts
+add all nodes ip, <please use node ips and node name>
+changet to root: sudo su
+printf "\n172.16.100.31 master\n172.16.100.41 one\n172.16.100.41 two\n\n" >> /etc/hosts
+then switch to regular user: exit
+verify: cat /etc/hosts
+sudo reboot 
+
+install containerd
+below content has to paste directly to shell 
+#starting from below line (dont include this line)
+cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+overlay
+br_netfilter
+EOF
+
+sudo modprobe overlay
+sudo modprobe br_netfilter
+
+#sysctl params required by setup, params persist across reboots
+
+cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-iptables = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.ipv4.ip_forward = 1
+EOF
+
+#Apply sysctl params without reboot
+sudo sysctl --system
+
+Verify that the br_netfilter, overlay modules are loaded by running:
+lsmod | grep br_netfilter
+lsmod | grep overlay
+sudo sysctl net.bridge.bridge-nf-call-iptables net.bridge.bridge-nf-call-ip6tables net.ipv4.ip_forward
+
+Installing Containerd
+cd /tmp
+wget https://github.com/containerd/containerd/releases/download/v1.7.23/containerd-1.7.23-linux-amd64.tar.gz
+sudo tar Cxzvf /usr/local containerd-1.7.23-linux-amd64.tar.gz
+sudo wget -O /usr/lib/systemd/system/containerd.service https://raw.githubusercontent.com/containerd/containerd/main/containerd.service
+it will create a file: /usr/lib/systemd/system/containerd.service
+check containerd status
+sudo systemctl status containerd 
+start containerd service 
+sudo systemctl daemon-reload
+sudo systemctl enable --now containerd
+verify containerd status again: sudo systemctl status containerd 
+NOTE: I have tried with version 1.7.30 but it gave me error so I use 1.7.23 and it is working
+
+Installing runc
+wget https://github.com/opencontainers/runc/releases/download/v1.2.9/runc.amd64
+sudo install -m 755 runc.amd64 /usr/local/sbin/runc
+sudo reboot
+
+Installing CNI plugins
+wget https://github.com/containernetworking/plugins/releases/download/v1.9.0/cni-plugins-linux-amd64-v1.9.0.tgz
+sudo mkdir -p /opt/cni/bin
+sudo tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v1.9.0.tgz
+
+Configuring the systemd cgroup driver
+switch to root user 
+sudo su
+sudo mkdir /etc/containerd && sudo touch /etc/containerd/config.toml && sudo containerd config default > /etc/containerd/config.toml 
+we have to switch to normal user 
+exit
+
+sudo vi /etc/containerd/config.toml
+search SystemdCgroup in file and make its value true 
+make 
+SystemdCgroup = true 
+and 
+sandbox_image = "registry.k8s.io/pause:3.9"
+these two changes we were made in:  /etc/containerd/config.toml
+sudo systemctl restart containerd
+sudo systemctl status containerd
+
+Install kubeadm, kubelet and kubectl
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl gpg
+
+############ ONLY RUN THE FOLLOWING ON CONTROL NODE .. control plane install ########
+pull image first then process would be fast
+kubeadm config images pull
+https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
+#Enable the kubelet service before running kubeadm:
+sudo systemctl enable --now kubelet
+then reboot system
+sudo reboot 
+advertise cluster address
+we should provide control plane (master node) ip: 172.16.100.31
+sudo kubeadm init --apiserver-advertise-address=172.16.100.31 --pod-network-cidr=10.10.0.0/16
+
+kubeadm join 172.16.100.31:6443 --token fquwz1.wl2j9cwscvumyqjl \
+        --discovery-token-ca-cert-hash sha256:b63b66201600c4d29365a92c736782b51f6cdd803826d6a1b11fb8b7a9cd492f
+		
+reboot
+
+
+
+Install CNI – Calico
+# add Calico 3.30.2 CNI  <<<<<< edit the CIDR for pods if its custom
+kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.30.2/manifests/tigera-operator.yaml
+wget https://raw.githubusercontent.com/projectcalico/calico/v3.30.2/manifests/custom-resources.yaml
+vi custom-resources.yaml
+here we have to search cidr and change it to our kubeadm init --pod-network-cidr value, in my case it is: 10.10.0.0/16
+kubectl apply -f custom-resources.yaml
+
+# check state
+kubectl get pods --all-namespaces
+kubectl get nodes
+
+
